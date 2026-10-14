@@ -1,69 +1,60 @@
 # CareerCraft AI
 
-## Live Demo / Deployment URL
+[![Source](https://img.shields.io/badge/Source-GitHub-181717?logo=github)](https://github.com/kandisaikishore/CareerCraft-AI) [![Last Commit](https://img.shields.io/github/last-commit/kandisaikishore/CareerCraft-AI)](https://github.com/kandisaikishore/CareerCraft-AI/commits/main)
 
-**Deployment URL:** Not verified yet. Add the confirmed public application URL here after checking the live service. The GitHub repository link is not a deployment URL.
+CareerCraft AI is a career-development application starter for exploring job-search and professional-growth workflows. The repository uses a Node.js/npm development setup and supports Gemini-backed interactions where configured in the application source.
 
+## Project goals
 
-[![Repository](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/saikishore2410/CareerCraft-AI) [![Issues](https://img.shields.io/github/issues/saikishore2410/CareerCraft-AI)](https://github.com/saikishore2410/CareerCraft-AI/issues) [![Last Commit](https://img.shields.io/github/last-commit/saikishore2410/CareerCraft-AI)](https://github.com/saikishore2410/CareerCraft-AI/commits/main)
+- Provide a career-focused user experience
+- Create a foundation for job-search and professional-development workflows
+- Make AI integration configurable and easier to validate
+- Keep setup instructions and project scope transparent for contributors
 
-> This repository contains the application source and local development setup. This README is intended to help developers and reviewers understand the project, run it locally, and assess its current scope without overstating unverified capabilities.
-
-## At a glance
-
-- **Purpose:** Understand the problem and supported workflows from the feature and scope sections below.
-- **Setup:** Follow the project-specific steps in **Getting started** or **Run locally**; verify commands against the current source and package scripts.
-- **Configuration:** Keep API keys, database passwords, tokens, and user data out of commits. Use local environment variables for secrets.
-- **Quality:** Run the available build, tests, and lint checks before proposing changes.
-
-
-
-**An AI Studio application starter in the career-development space, intended to support job-search and professional-growth workflows.**
-
-## Overview
-
-This repository contains the application source and local development setup. This README is intended to help developers and reviewers understand the project, run it locally, and assess its current scope without overstating unverified capabilities.
-
-## Highlights
-
-- Career-focused app interface
-- Local development with npm
-- Gemini API configuration for supported AI interactions
+Review the current application code to confirm the exact workflows available in this version.
 
 ## Technology
 
-Node.js · npm · Gemini API (for configured features)
+- Node.js
+- npm
+- Gemini API for supported AI features
 
-## Quick start
+## Prerequisites
 
-Prerequisite: a compatible Node.js installation. From a terminal:
+Install a compatible Node.js version and npm. Use an API key only if the configured application functionality requires it.
+
+## Run locally
 
 ```bash
- git clone https://github.com/saikishore2410/CareerCraft-AI.git
- cd CareerCraft-AI
- npm install
-# Add GEMINI_API_KEY to .env.local
+git clone https://github.com/kandisaikishore/CareerCraft-AI.git
+cd CareerCraft-AI
+npm install
+```
+
+Add the expected AI credential to a local `.env.local` file if required (for example, `GEMINI_API_KEY` if the source reads that variable). Do not commit keys or other secrets.
+
+Start the app using the scripts listed in `package.json`:
+
+```bash
 npm run dev
 ```
 
-Configure environment variables locally before launching the app. Use the variable names expected by the current source code, and keep real credentials out of version control.
-
-## Build and validation
+## Build and validate
 
 ```bash
 npm run build
 ```
 
-Run any test or lint scripts defined in `package.json`. Review the source and deployment configuration before treating the application as production-ready.
+Run the test and lint scripts defined by the project. Check behaviour when API configuration is missing, when the service returns an error, and when AI responses are incomplete.
 
-## Configuration and limitations
+## Responsible AI use
 
-Confirm specific workflows against the current UI and source. Never commit API keys.
+AI-generated career suggestions should be reviewed for accuracy, clarity, and relevance before use. Avoid submitting sensitive personal details unless you understand how the application handles and stores data.
 
 ## Contributing
 
-Issues and focused pull requests are welcome. Include reproduction steps for bugs and describe the validation performed for changes.
+Open issues with reproducible steps and submit focused pull requests with build/test results.
 
 ## License
 
-No license is specified. Add a `LICENSE` file to define permitted reuse.
+No license file is currently declared. Add a `LICENSE` file to define reuse terms.
