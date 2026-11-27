@@ -1,119 +1,57 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { ResumeData } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+export interface ResumeOptimizationResult {
+  improvements: string[];
+  missingKeywords: string[];
+  matchScore: number;
+  highlightSkills: string[];
+}
 
-export const optimizeResume = async (
-  resume: ResumeData,
-  jobDescription: string,
-) => {
-  const prompt = `
-    You are an expert career coach and resume optimizer.
-    Analyze the following resume data and optimize it for the provided job description.
-    
-    Resume: ${JSON.stringify(resume)}
-    Job Description: ${jobDescription}
-    
-    Provide:
-    1. A list of specific improvements for the summary and experience descriptions.
-    2. Keywords that are missing but relevant to the job.
-    3. A score from 0-100 on how well the resume matches the job.
-    4. Suggestions for skills to highlight.
-  `;
+export interface InterviewQuestion {
+  question: string;
+  reason: string;
+  idealAnswer: string;
+}
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          improvements: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-          },
-          missingKeywords: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-          },
-          matchScore: { type: Type.NUMBER },
-          highlightSkills: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
-          },
-        },
-        required: [
-          "improvements",
-          "missingKeywords",
-          "matchScore",
-          "highlightSkills",
-        ],
-      },
-    },
+async function postAiRequest<T>(endpoint: string, body: unknown): Promise<T> {
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
 
-  return JSON.parse(response.text);
-};
+  const payload = await response.json().catch(() => null) as { error?: string } | T | null;
+  if (!response.ok) {
+    const message = payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+      ? payload.error
+      : "The AI service could not complete this request. Please try again.";
+    throw new Error(message);
+  }
+  if (payload === null) throw new Error("The AI service returned an empty response. Please retry.");
+  return payload as T;
+}
 
-export const generateInterviewQuestions = async (
+export const optimizeResume = (
   resume: ResumeData,
   jobDescription: string,
-) => {
-  const prompt = `
-    Based on the following resume and job description, generate 5 challenging interview questions.
-    For each question, explain why it's being asked and what a "good" answer should include.
-    
-    Resume: ${JSON.stringify(resume)}
-    Job Description: ${jobDescription}
-  `;
+): Promise<ResumeOptimizationResult> =>
+  postAiRequest("/api/ai/optimize-resume", { resume, jobDescription });
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            question: { type: Type.STRING },
-            reason: { type: Type.STRING },
-            idealAnswer: { type: Type.STRING },
-          },
-          required: ["question", "reason", "idealAnswer"],
-        },
-      },
-    },
-  });
-
-  return JSON.parse(response.text);
-};
+export const generateInterviewQuestions = (
+  resume: ResumeData,
+  jobDescription: string,
+): Promise<InterviewQuestion[]> =>
+  postAiRequest("/api/ai/interview-questions", { resume, jobDescription });
 
 export const startMockInterview = async (
   resume: ResumeData,
   jobDescription: string,
   history: { role: string; content: string }[],
-) => {
-  const systemInstruction = `
-    You are an expert interviewer for a position matching the provided job description.
-    You have the candidate's resume.
-    Conduct a realistic, professional, and challenging mock interview.
-    Ask one question at a time.
-    Provide brief feedback after each answer if appropriate, then move to the next question.
-    
-    Candidate Resume: ${JSON.stringify(resume)}
-    Job Description: ${jobDescription}
-  `;
-
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: history.map((h) => h.content).join("\n"), // Simplified for now, better to use chat history format
-    config: {
-      systemInstruction,
-    },
+): Promise<string> => {
+  const response = await postAiRequest<{ text: string }>("/api/ai/mock-interview", {
+    resume,
+    jobDescription,
+    history,
   });
-
   return response.text;
 };
