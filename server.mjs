@@ -7,6 +7,7 @@ import {
   parseOptimizationResult,
   parseInterviewQuestions,
   validateInterviewHistory,
+  validateResumeInput,
 } from "./server/aiValidation.js";
 
 const app = express();
@@ -33,14 +34,15 @@ function requireText(value, field, maxLength = 20000) {
 }
 
 function requireResume(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    throw new HttpError(400, "Resume data is required.");
+  try {
+    const resume = validateResumeInput(value);
+    if (JSON.stringify(resume).length > 50000) {
+      throw new Error("Resume data is too large to analyze.");
+    }
+    return resume;
+  } catch (error) {
+    throw new HttpError(400, error.message);
   }
-  const serialized = JSON.stringify(value);
-  if (serialized.length > 50000) {
-    throw new HttpError(400, "Resume data is too large to analyze.");
-  }
-  return value;
 }
 
 function getAiClient() {
