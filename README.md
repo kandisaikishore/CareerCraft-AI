@@ -2,26 +2,31 @@
 
 [![Source](https://img.shields.io/badge/Source-GitHub-181717?logo=github)](https://github.com/kandisaikishore/CareerCraft-AI) [![Last Commit](https://img.shields.io/github/last-commit/kandisaikishore/CareerCraft-AI)](https://github.com/kandisaikishore/CareerCraft-AI/commits/main)
 
-CareerCraft AI is a career-development application starter for exploring job-search and professional-growth workflows. The repository uses a Node.js/npm development setup and supports Gemini-backed interactions where configured in the application source.
-
-## Project goals
-
-- Provide a career-focused user experience
-- Create a foundation for job-search and professional-development workflows
-- Make AI integration configurable and easier to validate
-- Keep setup instructions and project scope transparent for contributors
-
-Review the current application code to confirm the exact workflows available in this version.
+CareerCraft AI is a career-development application with a resume builder, AI resume optimization, and mock interview workflows.
 
 ## Technology
 
-- Node.js
+- React and TypeScript
+- Vite
+- Express
+- Google Gemini API
+
+## Requirements
+
+- Node.js 20 or newer
 - npm
-- Gemini API for supported AI features
+- A Gemini API key for AI features
 
-## Prerequisites
+## Configure the server
 
-Install a compatible Node.js version and npm. Use an API key only if the configured application functionality requires it.
+Create a local `.env` file based on `.env.example` and set:
+
+```env
+GEMINI_API_KEY=your_server_side_key
+PORT=3000
+```
+
+**Keep `GEMINI_API_KEY` on the server.** The Vite client build does not receive or embed this credential. Do not use a `VITE_`-prefixed key or commit real secrets.
 
 ## Run locally
 
@@ -29,31 +34,39 @@ Install a compatible Node.js version and npm. Use an API key only if the configu
 git clone https://github.com/kandisaikishore/CareerCraft-AI.git
 cd CareerCraft-AI
 npm install
-```
-
-Add the expected AI credential to a local `.env.local` file if required (for example, `GEMINI_API_KEY` if the source reads that variable). Do not commit keys or other secrets.
-
-Start the app using the scripts listed in `package.json`:
-
-```bash
 npm run dev
 ```
 
-## Build and validate
+The Express server starts the Vite development middleware and exposes the AI endpoints under `/api/ai`. If the key is missing, AI requests return a clear configuration error while the UI remains available.
+
+## Validate
 
 ```bash
+npm test
+npm run lint
 npm run build
 ```
 
-Run the test and lint scripts defined by the project. Check behaviour when API configuration is missing, when the service returns an error, and when AI responses are incomplete.
+The automated tests validate malformed and incomplete AI responses and mock-interview history without calling the live Gemini service.
+
+## Production
+
+Build the frontend and run the Express server in production mode:
+
+```bash
+npm run build
+NODE_ENV=production npm start
+```
+
+Set `GEMINI_API_KEY`, `NODE_ENV=production`, and optionally `PORT` in the hosting provider's server-side environment/secret settings. The Express server serves the built frontend and proxies AI requests to Gemini. AI routes apply a per-IP request limit and bounded request sizes.
 
 ## Responsible AI use
 
-AI-generated career suggestions should be reviewed for accuracy, clarity, and relevance before use. Avoid submitting sensitive personal details unless you understand how the application handles and stores data.
+AI-generated career suggestions are advisory. Review them for accuracy and relevance before using them in applications or interviews. Avoid submitting sensitive personal details unless you understand how the application handles and stores data.
 
 ## Contributing
 
-Open issues with reproducible steps and submit focused pull requests with build/test results.
+Open issues with reproducible steps and submit focused pull requests with build and test results.
 
 ## License
 
