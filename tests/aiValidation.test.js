@@ -4,6 +4,7 @@ import {
   parseOptimizationResult,
   parseInterviewQuestions,
   validateInterviewHistory,
+  validateResumeInput,
 } from "../server/aiValidation.js";
 
 test("accepts a complete resume optimization response", () => {
@@ -36,6 +37,17 @@ test("accepts valid interview questions and rejects empty or malformed output", 
   assert.equal(questions.length, 1);
   assert.throws(() => parseInterviewQuestions("[]"), /incomplete interview questions/i);
   assert.throws(() => parseInterviewQuestions(JSON.stringify([{ question: "Only a question" }])), /incomplete interview questions/i);
+});
+
+test("requires a complete resume shape and at least one skill", () => {
+  assert.throws(() => validateResumeInput({ skills: [] }), /experience must be provided/i);
+  assert.throws(() => validateResumeInput({
+    experience: [], education: [], skills: [], projects: [], languages: [],
+  }), /at least one skill/i);
+  const resume = {
+    experience: [], education: [], skills: ["Java"], projects: [], languages: [],
+  };
+  assert.equal(validateResumeInput(resume), resume);
 });
 
 test("validates mock interview history and bounds its size", () => {
