@@ -1,25 +1,30 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { optimizeResume } from "@/src/services/geminiService";
+import { optimizeResume, ResumeOptimizationResult } from "@/src/services/geminiService";
 import { ResumeData } from "@/src/types";
 
 export function AIOptimizer({ resumeData }: { resumeData: ResumeData }) {
   const [jobDescription, setJobDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<ResumeOptimizationResult | null>(null);
 
   const handleOptimize = async () => {
-    if (!jobDescription) return;
+    if (!jobDescription.trim()) {
+      toast.error("Paste a job description before starting the analysis.");
+      return;
+    }
     setLoading(true);
     try {
       const data = await optimizeResume(resumeData, jobDescription);
       setResults(data);
     } catch (error) {
-      console.error("Optimization failed:", error);
+      setResults(null);
+      toast.error(error instanceof Error ? error.message : "Resume optimization failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -44,10 +49,10 @@ export function AIOptimizer({ resumeData }: { resumeData: ResumeData }) {
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
           />
-          <Button 
-            className="w-full" 
-            onClick={handleOptimize} 
-            disabled={loading || !jobDescription}
+          <Button
+            className="w-full"
+            onClick={handleOptimize}
+            disabled={loading || !jobDescription.trim()}
           >
             {loading ? (
               <>
@@ -70,13 +75,13 @@ export function AIOptimizer({ resumeData }: { resumeData: ResumeData }) {
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Job Match Score</span>
-                <span className={`text-2xl font-bold ${results.matchScore > 70 ? 'text-green-500' : 'text-orange-500'}`}>
+                <span className={`text-2xl font-bold ${results.matchScore > 70 ? "text-green-500" : "text-orange-500"}`}>
                   {results.matchScore}%
                 </span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full transition-all duration-1000 ${results.matchScore > 70 ? 'bg-green-500' : 'bg-orange-500'}`}
+                <div
+                  className={`h-full transition-all duration-1000 ${results.matchScore > 70 ? "bg-green-500" : "bg-orange-500"}`}
                   style={{ width: `${results.matchScore}%` }}
                 />
               </div>
@@ -87,7 +92,7 @@ export function AIOptimizer({ resumeData }: { resumeData: ResumeData }) {
                   Recommended Improvements
                 </h4>
                 <ul className="space-y-2">
-                  {results.improvements.map((improvement: string, i: number) => (
+                  {results.improvements.map((improvement, i) => (
                     <li key={i} className="text-sm text-slate-600 flex gap-2">
                       <span className="text-slate-400">•</span>
                       {improvement}
@@ -102,7 +107,7 @@ export function AIOptimizer({ resumeData }: { resumeData: ResumeData }) {
                   Missing Keywords
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {results.missingKeywords.map((keyword: string, i: number) => (
+                  {results.missingKeywords.map((keyword, i) => (
                     <Badge key={i} variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100 border-none">
                       {keyword}
                     </Badge>
@@ -113,7 +118,7 @@ export function AIOptimizer({ resumeData }: { resumeData: ResumeData }) {
               <div className="space-y-3">
                 <h4 className="text-sm font-semibold">Skills to Highlight</h4>
                 <div className="flex flex-wrap gap-2">
-                  {results.highlightSkills.map((skill: string, i: number) => (
+                  {results.highlightSkills.map((skill, i) => (
                     <Badge key={i} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-none">
                       {skill}
                     </Badge>
