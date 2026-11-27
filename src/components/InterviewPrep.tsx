@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Send, Loader2, User, Bot, Sparkles } from "lucide-react";
+import { MessageSquare, Send, Loader2, User, Bot } from "lucide-react";
 import { startMockInterview } from "@/src/services/geminiService";
 import { ResumeData, InterviewMessage } from "@/src/types";
 import ReactMarkdown from "react-markdown";
@@ -17,13 +18,14 @@ export function InterviewPrep({ resumeData }: { resumeData: ResumeData }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    if (scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleStartInterview = async () => {
-    if (!jobDescription) return;
+    if (!jobDescription.trim()) {
+      toast.error("Enter a target job description before starting the interview.");
+      return;
+    }
     setLoading(true);
     setInterviewStarted(true);
     try {
@@ -31,7 +33,8 @@ export function InterviewPrep({ resumeData }: { resumeData: ResumeData }) {
       const response = await startMockInterview(resumeData, jobDescription, [{ role: "user", content: initialPrompt }]);
       setMessages([{ role: "assistant", content: response, timestamp: Date.now() }]);
     } catch (error) {
-      console.error("Failed to start interview:", error);
+      setInterviewStarted(false);
+      toast.error(error instanceof Error ? error.message : "Could not start the interview. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -46,15 +49,16 @@ export function InterviewPrep({ resumeData }: { resumeData: ResumeData }) {
       timestamp: Date.now(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setLoading(true);
 
     try {
-      const response = await startMockInterview(resumeData, jobDescription, [...messages, userMessage]);
-      setMessages((prev) => [...prev, { role: "assistant", content: response, timestamp: Date.now() }]);
+      const response = await startMockInterview(resumeData, jobDescription, updatedMessages);
+      setMessages((previous) => [...previous, { role: "assistant", content: response, timestamp: Date.now() }]);
     } catch (error) {
-      console.error("Failed to get response:", error);
+      toast.error(error instanceof Error ? error.message : "The interviewer could not respond. Please retry.");
     } finally {
       setLoading(false);
     }
@@ -85,16 +89,14 @@ export function InterviewPrep({ resumeData }: { resumeData: ResumeData }) {
           <Button
             className="w-full"
             onClick={handleStartInterview}
-            disabled={loading || !jobDescription}
+            disabled={loading || !jobDescription.trim()}
           >
-            {loading
-              ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Preparing Interview...
-                </>
-              )
-              : "Start Mock Interview"}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Preparing Interview...
+              </>
+            ) : "Start Mock Interview"}
           </Button>
         </CardContent>
       </Card>
@@ -116,31 +118,20 @@ export function InterviewPrep({ resumeData }: { resumeData: ResumeData }) {
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] p-3 rounded-2xl ${
-                  msg.role === "user"
-                    ? "bg-blue-600 text-white rounded-tr-none"
-                    : "bg-slate-100 text-slate-800 rounded-tl-none"
-                }`}
-              >
+            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-[80%] p-3 rounded-2xl ${msg.role === "user" ? "bg-blue-600 text-white rounded-tr-none" : "bg-slate-100 text-slate-800 rounded-tl-none"}`}>
                 <div className="flex items-center gap-2 mb-1 opacity-70 text-[10px] uppercase font-bold tracking-wider">
-                  {msg.role === "user"
-                    ? (
-                      <>
-                        <span>You</span>
-                        <User className="w-3 h-3" />
-                      </>
-                    )
-                    : (
-                      <>
-                        <Bot className="w-3 h-3" />
-                        <span>AI Interviewer</span>
-                      </>
-                    )}
+                  {msg.role === "user" ? (
+                    <>
+                      <span>You</span>
+                      <User className="w-3 h-3" />
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="w-3 h-3" />
+                      <span>AI Interviewer</span>
+                    </>
+                  )}
                 </div>
                 <div className="prose prose-sm prose-slate max-w-none dark:prose-invert">
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
