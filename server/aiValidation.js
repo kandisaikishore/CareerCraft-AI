@@ -58,6 +58,25 @@ export function parseInterviewQuestions(text) {
   }));
 }
 
+export function validateResumeInput(value) {
+  if (!isRecord(value)) {
+    throw new Error("Resume data is required.");
+  }
+
+  for (const field of ["experience", "education", "skills", "projects", "languages"]) {
+    if (!Array.isArray(value[field])) {
+      throw new Error(`Resume ${field} must be provided as a list.`);
+    }
+  }
+
+  const skills = value.skills.filter((skill) => typeof skill === "string" && skill.trim().length > 0);
+  if (skills.length === 0) {
+    throw new Error("Add at least one skill to your resume before using AI career tools.");
+  }
+
+  return value;
+}
+
 export function validateInterviewHistory(value) {
   if (!Array.isArray(value) || value.length === 0 || value.length > 40) {
     throw new Error("Interview history must contain between 1 and 40 messages.");
